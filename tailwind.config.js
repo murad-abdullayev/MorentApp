@@ -16,6 +16,7 @@ export default {
       },
     },
     screens: {
+      "2xl": "1680px",
       xl: "1440px",
       lg: "1024px",
       md: "768px",
@@ -52,6 +53,10 @@ export default {
         information: {
           DEFAULT: "hsl(var(--information))",
           foreground: "hsl(var(--information-foreground))",
+        },
+        footer: {
+          DEFAULT: "hsl(var(--medium-footer))",
+          foreground: "hsl(var(--medium-footer))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",

@@ -38,7 +38,7 @@ export const CustomSelect = ({ label, options, placeholder }: Props) => {
           <img src={ArrowDownImg} alt="Arrow Down" />
         </div>
         <RenderIf condition={isOpen}>
-          <div className="absolute top-6 w-full bg-white mt-1 border border-secondary/50">
+          <div className="absolute top-8 w-full bg-white mt-1 border border-secondary/50">
             <ul>
               {options.map((option) => (
                 <li

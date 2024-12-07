@@ -1,19 +1,32 @@
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { paths } from "@/constants/paths";
+
 import HeartFilledImg from "@/assets/icons/heart-filled-red.svg";
 import HeartOutlinedImg from "@/assets/icons/heart-outlined.svg";
 import TransmissionImg from "@/assets/icons/transmission.svg";
 import FuelImg from "@/assets/icons/fuel.svg";
 import PeopleImg from "@/assets/icons/people.svg";
 import CarImg from "@/assets/images/car.png";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 
 export const RentCard = () => {
   const [isLiked, setIsLiked] = useState(false);
+  const navigate = useNavigate();
+  const id = "3edb61b2-4f2f-44d9-8597-85c0a1937db9";
+
+  function navigateToDetail() {
+    navigate(paths.DETAIL(id));
+  }
+
   return (
     <div className="w-full bg-white rounded-[10px] p-4 lg:p-6">
       <div className="flex justify-between">
         <div>
-          <h4 className="font-bold text-secondary-500 text-base lg:text-xl leading-[150%] tracking-[-0.6px]">
+          <h4
+            onClick={navigateToDetail}
+            className="font-bold text-secondary-500 text-base lg:text-xl leading-[150%] tracking-[-0.6px] cursor-pointer hover:underline"
+          >
             Koenigsegg
           </h4>
           <p className="text-secondary-300 text-xs lg:text-sm leading-[150%] tracking-[-0.28px]">
@@ -24,7 +37,10 @@ export const RentCard = () => {
           <img src={isLiked ? HeartFilledImg : HeartOutlinedImg} alt="heart" />
         </button>
       </div>
-      <div className="mt-8 lg:mt-12 relative">
+      <div
+        className="mt-8 lg:mt-12 relative cursor-pointer"
+        onClick={navigateToDetail}
+      >
         <img src={CarImg} alt="car" className="w-full h-32 object-contain" />
         <div className="bg-[linear-gradient(180deg,rgba(255,255,255,0.00)0%,#FFF_100%)] w-full h-[68px] absolute bottom-0" />
       </div>

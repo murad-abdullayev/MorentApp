@@ -20,18 +20,23 @@ import { Input } from "@/components/ui/input";
 
 import { z } from "zod";
 import { DialogDescription } from "@radix-ui/react-dialog";
+import { useMutation } from "@tanstack/react-query";
+import authService from "@/services/auth";
+import { AxiosError } from "axios";
+import { AuthResponseType } from "@/services/auth/types";
+import { toast } from "sonner";
 
 const formSchema = z
   .object({
-    firstName: z.string().min(2).max(50),
-    lastName: z.string().min(2).max(50),
+    name: z.string().min(2).max(50),
+    surname: z.string().min(2).max(50),
     email: z.string().min(2).max(50),
     password: z.string().min(2).max(50),
     confirmPassword: z.string().min(2).max(50),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
-    path: ["confirm"],
+    path: ["confirmPassword"],
   });
 
 export const RegisterDialog = () => {
@@ -40,11 +45,26 @@ export const RegisterDialog = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
+      name: "",
+      surname: "",
       email: "",
       password: "",
       confirmPassword: "",
+    },
+  });
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: authService.register,
+    onSuccess: (response) => {
+      toast.success(response.data.message);
+      openDialog(ModalTypeEnum.LOGIN);
+    },
+    onError: (error: AxiosError<AuthResponseType>) => {
+      console.log(error.response?.data?.message);
+      const message =
+        error.response?.data?.message ??
+        "Something went wrong! Please try again.";
+      toast.error(message);
     },
   });
 
@@ -54,9 +74,7 @@ export const RegisterDialog = () => {
 
   // 2. Define a submit handler.
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+    mutate(values);
   }
 
   return (
@@ -81,7 +99,7 @@ export const RegisterDialog = () => {
             <div className="grid grid-cols-2 gap-5">
               <FormField
                 control={form.control}
-                name="firstName"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>First Name</FormLabel>
@@ -95,7 +113,7 @@ export const RegisterDialog = () => {
               />
               <FormField
                 control={form.control}
-                name="lastName"
+                name="surname"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Last Name</FormLabel>
@@ -128,7 +146,11 @@ export const RegisterDialog = () => {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input placeholder="**********" {...field} />
+                      <Input
+                        type="password"
+                        placeholder="**********"
+                        {...field}
+                      />
                     </FormControl>
 
                     <FormMessage />
@@ -142,7 +164,11 @@ export const RegisterDialog = () => {
                   <FormItem>
                     <FormLabel>Confirm Password</FormLabel>
                     <FormControl>
-                      <Input placeholder="**********" {...field} />
+                      <Input
+                        type="password"
+                        placeholder="**********"
+                        {...field}
+                      />
                     </FormControl>
 
                     <FormMessage />
@@ -150,8 +176,8 @@ export const RegisterDialog = () => {
                 )}
               />
             </div>
-            <Button type="submit" className="w-full">
-              Sign Up
+            <Button type="submit" className="w-full" disabled={isPending}>
+              Register
             </Button>
           </form>
         </Form>

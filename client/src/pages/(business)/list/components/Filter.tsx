@@ -1,77 +1,72 @@
+import MultiRangeSlider from "@/components/shared/multi-range-slider";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Slider } from "@/components/ui/slider";
+// import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
+import categoryService from "@/services/category";
+import { useQuery } from "@tanstack/react-query";
 import { FilterIcon } from "lucide-react";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useOnClickOutside } from "usehooks-ts";
 
-const filters = [
-  {
-    label: "Type",
-    options: [
-      {
-        value: "sport",
-        label: "Sport",
-        count: 10,
-      },
-      {
-        value: "suv",
-        label: "SUV",
-        count: 12,
-      },
-      {
-        value: "mpv",
-        label: "MPV",
-        count: 16,
-      },
-      {
-        value: "sedan",
-        label: "Sedan",
-        count: 20,
-      },
-      {
-        value: "coupe",
-        label: "Coupe",
-        count: 14,
-      },
-      {
-        value: "hatchback",
-        label: "Hatchback",
-        count: 14,
-      },
-    ],
-  },
-  {
-    label: "Capacity",
-    options: [
-      {
-        value: "2",
-        label: "2 Person",
-        count: 10,
-      },
-      {
-        value: "4",
-        label: "4 Person",
-        count: 14,
-      },
-      {
-        value: "6",
-        label: "6 Person",
-        count: 12,
-      },
-      {
-        value: "8",
-        label: "8 Person",
-        count: 16,
-      },
-    ],
-  },
-];
+type Filters = {
+  label: string;
+  options: {
+    value: string;
+    label: string;
+    count?: number;
+  }[];
+}[];
 
 export const Filters = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const { data: categoryResponse } = useQuery({
+    queryKey: ["categories"],
+    queryFn: categoryService.getAll,
+  });
+
+  const categoryOptions = useMemo(() => {
+    if (!categoryResponse) return [];
+    return categoryResponse.data.items.map((category) => ({
+      value: category._id,
+      label: category.name,
+      count: category.count,
+    }));
+  }, [categoryResponse]);
+
+  const filters: Filters = useMemo(
+    () => [
+      {
+        label: "Type",
+        options: categoryOptions,
+      },
+      {
+        label: "Capacity",
+        options: [
+          {
+            value: "2",
+            label: "2 Person",
+          },
+          {
+            value: "4",
+            label: "4 Person",
+          },
+          {
+            value: "6",
+            label: "6 Person",
+          },
+          {
+            value: "8",
+            label: "8 Person",
+          },
+        ],
+      },
+    ],
+    [categoryOptions]
+  );
 
   function toggle() {
     setIsOpen(!isOpen);
@@ -79,6 +74,39 @@ export const Filters = () => {
 
   function handleClose() {
     setIsOpen(false);
+  }
+
+  function handleChange(type: string, option: string) {
+    const params = searchParams.getAll(type.toLowerCase());
+
+    let newParams: string[] = [];
+
+    if (params.includes(String(option))) {
+      newParams = params.filter((param) => param !== String(option));
+    } else {
+      newParams = [...params, String(option)];
+    }
+
+    searchParams.delete(type.toLowerCase());
+    newParams.forEach((param) => {
+      searchParams.append(type.toLowerCase(), param);
+    });
+
+    setSearchParams(searchParams);
+  }
+
+  function handleRangeChange(min: number, max: number) {
+    if (min === 0) {
+      searchParams.delete("minPrice");
+    } else {
+      searchParams.set("minPrice", String(min));
+    }
+    if (max === 1000) {
+      searchParams.delete("maxPrice");
+    } else {
+      searchParams.set("maxPrice", String(max));
+    }
+    setSearchParams(searchParams);
   }
 
   useOnClickOutside(ref, handleClose);
@@ -103,6 +131,7 @@ export const Filters = () => {
                   <div key={option.value} className="flex gap-x-2 items-center">
                     <Checkbox
                       id={`${filter.label}-${option.value}`}
+                      onClick={() => handleChange(filter.label, option.value)}
                       className="h-5 w-5"
                     />
                     <label
@@ -110,26 +139,23 @@ export const Filters = () => {
                       className="text-secondary cursor-pointer text-lg lg:text-xl font-semibold leading-[150%] tracking-[-0.4px]"
                     >
                       {option.label}{" "}
-                      <span className="text-secondary-300">
-                        ({option.count})
-                      </span>
+                      {option.count && (
+                        <span className="text-secondary-300">
+                          ({option.count})
+                        </span>
+                      )}
                     </label>
                   </div>
                 ))}
-                <div>
-                  <h4 className="text-xs font-semibold tracking-[-0.24px] text-secondary mb-7 uppercase">
-                    Price
-                  </h4>
-                  <div>
-                    <Slider />
-                    <p className="text-secondary text-lg lg:text-xl font-semibold tracking-[-0.4px] leading-[150%] mt-4">
-                      Max. $100.00
-                    </p>
-                  </div>
-                </div>
               </div>
             </div>
           ))}
+          <div>
+            <h4 className="text-xs font-semibold tracking-[-0.24px] text-secondary mb-7 uppercase">
+              Price
+            </h4>
+            <MultiRangeSlider min={0} max={1000} onChange={handleRangeChange} />
+          </div>
         </div>
       </div>
       <Button

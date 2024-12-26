@@ -7,7 +7,9 @@ import { RentListPage } from "@/pages/(business)/list";
 import PaymentPage from "@/pages/(business)/payment";
 import RentDetailPage from "@/pages/(business)/detail";
 import DashboardMainPage from "@/pages/(dashboard)/main";
-import DashboardRentsPage from "@/pages/(dashboard)/rents";
+import DashboardRentListPage from "@/pages/(dashboard)/rent/list";
+import DashboardRentCreatePage from "@/pages/(dashboard)/rent/create";
+import DashboardRentEditPage from "@/pages/(dashboard)/rent/edit";
 import DashboardLayout from "@/components/shared/DashboardLayout";
 
 export const router = createBrowserRouter([
@@ -40,8 +42,16 @@ export const router = createBrowserRouter([
             element: <DashboardMainPage />,
           },
           {
-            path: paths.DASHBOARD.RENTS,
-            element: <DashboardRentsPage />,
+            path: paths.DASHBOARD.RENTS.LIST,
+            element: <DashboardRentListPage />,
+          },
+          {
+            path: paths.DASHBOARD.RENTS.CREATE,
+            element: <DashboardRentCreatePage />,
+          },
+          {
+            path: paths.DASHBOARD.RENTS.EDIT(),
+            element: <DashboardRentEditPage />,
           },
         ],
       },

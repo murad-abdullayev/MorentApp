@@ -1,12 +1,13 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { AxiosError } from "axios";
+import { AuthResponseType } from "@/services/auth/types";
+import { toast } from "sonner";
+
+import { DialogDescription } from "@radix-ui/react-dialog";
+import authService from "@/services/auth";
 import { ModalTypeEnum, useDialog } from "@/hooks/useDialog";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -17,9 +18,16 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-
 import { z } from "zod";
-import { DialogDescription } from "@radix-ui/react-dialog";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { getCurrentUserAsync } from "@/store/features/userSlice";
+import { useAppDispatch } from "@/hooks/redux";
 
 const formSchema = z.object({
   email: z.string().min(2).max(50),
@@ -37,15 +45,30 @@ export const LoginDialog = () => {
     },
   });
 
+  const dispatch = useAppDispatch();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: authService.login,
+    onSuccess: (response) => {
+      toast.success(response.data.message);
+      closeDialog();
+      dispatch(getCurrentUserAsync());
+    },
+    onError: (error: AxiosError<AuthResponseType>) => {
+      const message =
+        error.response?.data.message ??
+        "Something went wrong! Please try again.";
+      toast.error(message);
+    },
+  });
+
   if (isOpen && type !== ModalTypeEnum.LOGIN) {
     return null;
   }
 
   // 2. Define a submit handler.
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+    mutate(values);
   }
 
   return (
@@ -86,14 +109,18 @@ export const LoginDialog = () => {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input placeholder="**********" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="**********"
+                      {...field}
+                    />
                   </FormControl>
 
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" disabled={isPending}>
               Sign In
             </Button>
           </form>

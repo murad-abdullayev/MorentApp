@@ -1,5 +1,6 @@
 import { RentCard } from "@/components/shared/rent-card";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 
 type Props = {
@@ -20,7 +21,10 @@ export const RentList = ({ heading, maxCols = 4 }: Props) => {
         </Button>
       </div>
       <div
-        className={`grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-${maxCols} gap-4 md:gap-6 lg:gap-8`}
+        className={cn(
+          `grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8`,
+          maxCols === 4 && "xl:grid-cols-4"
+        )}
       >
         <RentCard />
         <RentCard />

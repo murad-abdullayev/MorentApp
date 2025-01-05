@@ -5,8 +5,23 @@ import {
   GetByIdRentResponseType,
 } from "./types";
 
-const getAll = async () => {
-  return await axiosInstance.get<GetAllRentsResponseType>("/rent");
+const getAll = async (
+  pageParams: {
+    take?: number;
+    skip?: number;
+    type?: "recommended" | "popular";
+  },
+  searchParamsStr?: string
+) => {
+  const searchParams = new URLSearchParams(searchParamsStr);
+
+  if (pageParams.take) searchParams.append("take", pageParams.take.toString());
+  if (pageParams.skip) searchParams.append("skip", pageParams.skip.toString());
+  if (pageParams.type) searchParams.append("type", pageParams.type);
+
+  return await axiosInstance.get<GetAllRentsResponseType>(
+    `/rent?${searchParams.toString()}`
+  );
 };
 
 const getById = async (id: string) => {

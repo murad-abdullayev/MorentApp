@@ -19,17 +19,18 @@ const getAll = async (req: Request, res: Response) => {
 
     const filter: Record<string, any> = {
       $and: [],
+      $or: [],
     };
 
-    if (type === "recommendation") {
+    if (type === "recommended") {
       filter.showInRecommendation = true;
     }
 
     if (search) {
-      filter.OR = [
+      filter.$or.push(
         { name: { $regex: new RegExp(search, "i") } },
-        { description: { $regex: new RegExp(search, "i") } },
-      ];
+        { description: { $regex: new RegExp(search, "i") } }
+      );
     }
 
     if (capacity) {
@@ -55,17 +56,15 @@ const getAll = async (req: Request, res: Response) => {
     }
 
     if (dropoff_location) {
-      filter.dropOffLocations = {
-        $elemMatch: {
-          location: pickup_location,
-        },
-      };
+      filter.dropOffLocations = { $in: [dropoff_location] };
     }
 
     const items = await Rent.find(filter)
-      .skip(skip)
-      .limit(take)
+      .skip(+skip)
+      .limit(+take)
       .populate(["category", "pickUpLocation", "dropOffLocations"]);
+
+    const total = await Rent.countDocuments(filter);
 
     items.forEach((item) => {
       item.images = item.images.map(
@@ -75,6 +74,9 @@ const getAll = async (req: Request, res: Response) => {
     res.json({
       message: "success",
       items,
+      total,
+      take: +take,
+      skip: +skip,
     });
   } catch (error) {
     console.log(error);

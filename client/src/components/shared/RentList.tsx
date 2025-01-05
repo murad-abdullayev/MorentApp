@@ -2,14 +2,22 @@ import { RentCard } from "@/components/shared/rent-card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { RenderIf } from "./RenderIf";
+import { Rent } from "@/types";
 
 type Props = {
   heading: string;
-  // cars ...
   maxCols?: number;
+  isLoading?: boolean;
+  rents?: Rent[];
 };
 
-export const RentList = ({ heading, maxCols = 4 }: Props) => {
+export const RentList = ({
+  heading,
+  maxCols = 4,
+  isLoading = false,
+  rents,
+}: Props) => {
   return (
     <div>
       <div className="flex justify-between items-center py-2.5">
@@ -17,7 +25,7 @@ export const RentList = ({ heading, maxCols = 4 }: Props) => {
           {heading}
         </h3>
         <Button variant={"link"} asChild>
-          <Link to={"/"}>View All</Link>
+          <Link to={"/list"}>View All</Link>
         </Button>
       </div>
       <div
@@ -26,10 +34,16 @@ export const RentList = ({ heading, maxCols = 4 }: Props) => {
           maxCols === 4 && "xl:grid-cols-4"
         )}
       >
-        <RentCard />
-        <RentCard />
-        <RentCard />
-        <RentCard />
+        <RenderIf condition={isLoading}>
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((index) => (
+            <RentCard.Skeleton key={index} />
+          ))}
+        </RenderIf>
+        <RenderIf condition={!isLoading}>
+          {rents?.map((rent) => (
+            <RentCard key={rent._id} rent={rent} />
+          ))}
+        </RenderIf>
       </div>
     </div>
   );
